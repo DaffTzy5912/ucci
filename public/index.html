@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Deep Image Generator</title>
+  <style>
+    body { font-family: Arial; max-width: 600px; margin: auto; padding: 20px; }
+    textarea, button { width: 100%; padding: 10px; margin: 10px 0; font-size: 16px; }
+    img { max-width: 100%; margin-top: 20px; }
+    #output { margin-top: 20px; }
+  </style>
+</head>
+<body>
+  <h1>🎨 Deep Image Generator</h1>
+  <textarea id="promptInput" placeholder="Masukkan prompt, misalnya: City at night | Cyberpunk" rows="3"></textarea>
+  <button onclick="generateImage()">Buat Gambar</button>
+
+  <div id="output"></div>
+
+  <script>
+    async function generateImage() {
+      const output = document.getElementById('output');
+      output.innerHTML = '⏳ Sedang membuat gambar...';
+
+      const promptInput = document.getElementById('promptInput').value.trim();
+      if (!promptInput) return output.innerHTML = '<span style="color:red">Prompt harus diisi!</span>';
+
+      try {
+        const res = await fetch('/api/generate', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ promptInput })
+        });
+
+        const data = await res.json();
+
+        if (data.error) throw new Error(data.error);
+
+        if (data.imageUrl) {
+          output.innerHTML = `
+            <p><strong>Prompt:</strong> ${data.prompt}</p>
+            <p><strong>Style:</strong> ${data.style}</p>
+            <img src="${data.imageUrl}" alt="Hasil Gambar"/>
+          `;
+        } else {
+          output.innerHTML = `<span style="color:red">❌ Gambar tidak ditemukan.</span>`;
+        }
+
+      } catch (err) {
+        console.error(err);
+        output.innerHTML = `<span style="color:red">❌ Terjadi kesalahan: ${err.message}</span>`;
+      }
+    }
+  </script>
+</body>
+</html>
